@@ -10,7 +10,6 @@ import UIKit
 import RxSwift
 import RxCocoa
 import Moya
-import KeychainSwift
 
 public enum AuthHeaderType {
     case bearer
@@ -20,11 +19,11 @@ public enum AuthHeaderType {
 }
 
 public struct AuthorizeModel: Codable {
-    var accessToken: String?
-    var refreshToken: String?
-    var tokenType: String?
-    var updatedDate: Date?
-    var expireIn: Double?
+    public var accessToken: String?
+    public var refreshToken: String?
+    public var tokenType: String?
+    public var updatedDate: Date?
+    public var expireIn: Double?
 
     private enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
@@ -33,6 +32,8 @@ public struct AuthorizeModel: Codable {
         case updatedDate = "updated_date"
         case expireIn = "expires_in"
     }
+
+    public init(){}
 
 }
 
@@ -44,12 +45,12 @@ public struct AuthorizeResponse {
 }
 
 public struct Authorize {
-//    public static var shared = Authorize()
-//    fileprivate init() {}
+    //    public static var shared = Authorize()
+    //    fileprivate init() {}
 
-  public static var customHeader: [String: String]? {
+    public static var customHeader: [String: String]? {
         get {
-            if let header = UserDefaults().dictionary(forKey: "auth_custom_header") as? [String: String] {
+            if let header = UserDefaults.standard.dictionary(forKey: "auth_custom_header") as? [String: String] {
                 return header
             }
             return nil
@@ -57,19 +58,32 @@ public struct Authorize {
 
         set {
             if let values = newValue {
-                UserDefaults().set(values, forKey: "auth_custom_header")
+                UserDefaults.standard.set(values, forKey: "auth_custom_header")
+                UserDefaults.standard.synchronize()
             } else {
-                UserDefaults().removeObject(forKey: "auth_custom_header")
+                UserDefaults.standard.removeObject(forKey: "auth_custom_header")
+                UserDefaults.standard.synchronize()
             }
-            UserDefaults().synchronize()
+            UserDefaults.standard.synchronize()
         }
     }
 
-  public static var accessToken: String? {
-            if let auth = self.auth {
-                return auth.accessToken
-            }
-            return nil
+    public static var refreshToken: String? {
+        if let auth = self.auth {
+            return auth.refreshToken
+        }
+        return nil
+    }
+
+    public static var authoRizeModel: AuthorizeModel? {
+        return self.auth
+    }
+
+    public static var accessToken: String? {
+        if let auth = self.auth {
+            return auth.accessToken
+        }
+        return nil
     }
 
     /// Check whether its time to refresh the token or not
@@ -80,7 +94,7 @@ public struct Authorize {
         return true
     }
 
-   public static func updateAuthorize(_ authorize: [String: Any]) -> Bool {
+    public static func updateAuthorize(_ authorize: [String: Any]) -> Bool {
         if let authorizeModelData = try? JSONEncoder().encode(authorize), let authorizeModel = try? JSONDecoder().decode(AuthorizeModel.self, from: authorizeModelData) {
             self.auth = authorizeModel
             return true
@@ -90,6 +104,12 @@ public struct Authorize {
 
     public static func updateAuthorize(_ authorize: AuthorizeModel) -> Bool {
         self.auth = authorize
+        return true
+    }
+
+    public static func clearSavedData() -> Bool {
+        self.auth = nil
+        self.customHeader = nil
         return true
     }
 
@@ -125,22 +145,21 @@ public struct Authorize {
 }
 
 extension Authorize {
-    /// The Keychain in which we are going to stroe our data
-    fileprivate static let keychain = KeychainSwift()
 
     /// The auth data for current session after authorization of app
     fileprivate static var auth: AuthorizeModel? {
         set {
             if let newValue = newValue {
                 guard let authValues = try? JSONEncoder().encode(newValue) else { return }
-                let authData = NSKeyedArchiver.archivedData(withRootObject: authValues)
-                Authorize.keychain.set(authData, forKey: "AuthSession", withAccess: .accessibleAfterFirstUnlock)
+                UserDefaults.standard.setValue(authValues, forKey: "AuthSession")
+                UserDefaults.standard.synchronize()
             } else {
-                Authorize.keychain.delete("AuthSession")
+                UserDefaults.standard.removeObject(forKey: "AuthSession")
+                UserDefaults.standard.synchronize()
             }
         }
         get {
-            if let authData = Authorize.keychain.getData("AuthSession") {
+            if let authData = UserDefaults.standard.value(forKey: "AuthSession") as? Data {
                 let authValue = try? JSONDecoder().decode(AuthorizeModel.self, from: authData)
                 return authValue
             }

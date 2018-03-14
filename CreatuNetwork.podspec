@@ -9,7 +9,7 @@
 Pod::Spec.new do |s|
   s.name             = 'CreatuNetwork'
   s.version          = '0.1.0'
-  s.summary          = 'This is Network request library. '
+  s.summary          = 'This is Network request library. depends upon RXSwift, RxXoxoa, Moya/RxSwift, ReachabilitySwift '
 
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
@@ -29,7 +29,7 @@ TODO: Add long description of the pod here.
  s.social_media_url = 'https://twitter.com/sngmon'
 
   s.ios.deployment_target = '10.0'
-
+   s.swift_version = '4.0'
   s.source_files = 'CreatuNetwork/**/*'
   
   # s.resource_bundles = {
@@ -41,6 +41,5 @@ TODO: Add long description of the pod here.
   s.dependency "RxSwift", "~> 4.1.2"
   s.dependency "RxCocoa", "~> 4.1.2"
   s.dependency "Moya/RxSwift", "~> 11.0.1"
-  s.dependency "KeychainSwift", "~> 10.0.0"
   s.dependency "ReachabilitySwift", "~> 4.1.0"
 end
