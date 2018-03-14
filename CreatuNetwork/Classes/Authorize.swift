@@ -95,7 +95,10 @@ public struct Authorize {
     }
 
     public static func updateAuthorize(_ authorize: [String: Any]) -> Bool {
-        if let authorizeModelData = try? JSONEncoder().encode(authorize), let authorizeModel = try? JSONDecoder().decode(AuthorizeModel.self, from: authorizeModelData) {
+        if let authorizeModelData = try? JSONEncoder().encode(authorize), var authorizeModel = try? JSONDecoder().decode(AuthorizeModel.self, from: authorizeModelData) {
+            if authorizeModel.updatedDate == nil {
+                authorizeModel.updatedDate = Date()
+            }
             self.auth = authorizeModel
             return true
         }
@@ -103,7 +106,16 @@ public struct Authorize {
     }
 
     public static func updateAuthorize(_ authorize: AuthorizeModel) -> Bool {
-        self.auth = authorize
+
+        if authorize.updatedDate == nil {
+            var auth = authorize
+             auth.updatedDate = Date()
+             self.auth = authorize
+        }
+        else{
+             self.auth = authorize
+        }
+
         return true
     }
 
@@ -116,10 +128,12 @@ public struct Authorize {
     public static func setAccessToken(_ token: String) -> Bool {
         if var auth = self.auth {
             auth.accessToken = token
+            auth.updatedDate = Date()
             self.auth = auth
         } else {
             var auth = AuthorizeModel()
             auth.accessToken = token
+            auth.updatedDate = Date()
             self.auth = auth
         }
         return true
@@ -131,10 +145,12 @@ public struct Authorize {
             let encodedToken = dataFromString.base64EncodedString()
             if var auth = self.auth {
                 auth.accessToken = encodedToken
+                auth.updatedDate = Date()
                 self.auth = auth
             } else {
                 var auth = AuthorizeModel()
                 auth.accessToken = encodedToken
+                auth.updatedDate = Date()
                 self.auth = auth
             }
             return true
