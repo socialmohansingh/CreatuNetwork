@@ -48,7 +48,7 @@ public struct Network {
         }
     }
 
-    static func available() -> Bool {
+    public static func available() -> Bool {
         return self.isInternetAvailable()
     }
 

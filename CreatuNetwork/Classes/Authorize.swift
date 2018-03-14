@@ -75,7 +75,7 @@ public struct Authorize {
         return nil
     }
 
-    public static var authoRizeModel: AuthorizeModel? {
+    public static var authorizeModel: AuthorizeModel? {
         return self.auth
     }
 
