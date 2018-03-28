@@ -38,10 +38,10 @@ public struct AuthorizeModel: Codable {
 }
 
 public struct AuthorizeResponse {
-    var shouldTokenRefresh = false
-    var response: Any?
-    var message: String?
-    var success = true
+    public var shouldTokenRefresh = false
+    public var response: Moya.Response?
+    public var message: String?
+    public var success = true
 }
 
 public struct Authorize {
@@ -109,11 +109,11 @@ public struct Authorize {
 
         if authorize.updatedDate == nil {
             var auth = authorize
-             auth.updatedDate = Date()
-             self.auth = authorize
+            auth.updatedDate = Date()
+            self.auth = authorize
         }
         else{
-             self.auth = authorize
+            self.auth = authorize
         }
 
         return true
@@ -183,3 +183,4 @@ extension Authorize {
         }
     }
 }
+

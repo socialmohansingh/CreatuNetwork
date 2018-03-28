@@ -19,8 +19,23 @@ struct AuthorizeNetworking<MSTApi>: AuthNetworkingProtocol where MSTApi: ApiTarg
 //request maker for userNetworking
 extension AuthorizeNetworking {
 
+    func requestWithProgress(with token: MSTApi) -> Observable<ProgressResponse> {
+        let requiredRequest = self.provider.rx.requestWithProgress(token)
+        return requiredRequest// { _ in return requiredRequest }
+    }
+
     func request(with token: MSTApi) -> Observable<Moya.Response> {
         let requiredRequest = self.provider.rx.request(token)
+        return Observable.just(true).flatMap { _ in return requiredRequest }
+    }
+
+    func requestWithProgress(with token: MSTApi, callbackQueue: DispatchQueue?) -> Observable<ProgressResponse> {
+        let requiredRequest = self.provider.rx.requestWithProgress(token, callbackQueue: callbackQueue)
+        return requiredRequest
+    }
+
+    func request(with token: MSTApi, callbackQueue: DispatchQueue?) -> Observable<Moya.Response> {
+        let requiredRequest = self.provider.rx.request(token, callbackQueue: callbackQueue)
         return Observable.just(true).flatMap { _ in return requiredRequest }
     }
 
@@ -98,3 +113,5 @@ extension AuthNetworkingProtocol {
         }
     }
 }
+
+
