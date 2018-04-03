@@ -95,7 +95,7 @@ public struct Authorize {
     }
 
     public static func updateAuthorize(_ authorize: [String: Any]) -> Bool {
-        if let authorizeModelData = try? JSONEncoder().encode(authorize), var authorizeModel = try? JSONDecoder().decode(AuthorizeModel.self, from: authorizeModelData) {
+        if let authorizeModelData = try? JSONSerialization.data(withJSONObject: authorize, options: .prettyPrinted), var authorizeModel = try? JSONDecoder().decode(AuthorizeModel.self, from: authorizeModelData) {
             if authorizeModel.updatedDate == nil {
                 authorizeModel.updatedDate = Date()
             }
