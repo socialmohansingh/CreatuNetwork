@@ -23,7 +23,7 @@ public struct AuthorizeModel: Codable {
     public var refreshToken: String?
     public var tokenType: String?
     public var updatedDate: Date?
-    public var expireIn: Int = 0
+    public var expireIn: Int = 3600
 
     private enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
@@ -110,7 +110,7 @@ public struct Authorize {
         return true
     }
 
-    public static func updateTokenExpireTime(_ expireAt: Int) -> Bool {
+    public static func updateTokenExpireTime(_ expireAt: Int = 3600) -> Bool {
         if var auth = self.auth {
             auth.expireIn = expireAt
             auth.updatedDate = Date()
@@ -119,7 +119,7 @@ public struct Authorize {
         return true
     }
 
-    public static func setAccessToken(_ token: String, expireAt:Int = 0) -> Bool {
+    public static func setAccessToken(_ token: String, expireAt:Int = 3600) -> Bool {
         if var auth = self.auth {
             auth.accessToken = token
             auth.expireIn = expireAt
@@ -135,7 +135,7 @@ public struct Authorize {
         return true
     }
 
-    public static func setAccessToken(_ clientId: String, clientSecret: String, expireAt: Int = 0) -> Bool {
+    public static func setAccessToken(_ clientId: String, clientSecret: String, expireAt: Int = 3600) -> Bool {
         let authString = "\(clientId):\(clientSecret)"
         if let dataFromString = authString.data(using: .utf8) {
             let encodedToken = dataFromString.base64EncodedString()
