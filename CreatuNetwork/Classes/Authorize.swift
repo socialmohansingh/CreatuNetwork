@@ -23,7 +23,7 @@ public struct AuthorizeModel: Codable {
     public var refreshToken: String?
     public var tokenType: String?
     public var updatedDate: Date?
-    public var expireIn: Double?
+    public var expireIn: Int = 0
 
     private enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
@@ -35,13 +35,6 @@ public struct AuthorizeModel: Codable {
 
     public init(){}
 
-}
-
-public struct AuthorizeResponse {
-    public var shouldTokenRefresh = false
-    public var response: Moya.Response?
-    public var message: String?
-    public var success = true
 }
 
 public struct Authorize {
@@ -86,14 +79,6 @@ public struct Authorize {
         return nil
     }
 
-    /// Check whether its time to refresh the token or not
-    public static var shouldRefreshToken: Bool {
-        if let authValue = auth, let updateDate = authValue.updatedDate, let expireTimeInSecond = authValue.expireIn {
-            return (-1) * updateDate.timeIntervalSinceNow > expireTimeInSecond
-        }
-        return true
-    }
-
     public static func updateAuthorize(_ authorize: [String: Any]) -> Bool {
         if let authorizeModelData = try? JSONSerialization.data(withJSONObject: authorize, options: .prettyPrinted), var authorizeModel = try? JSONDecoder().decode(AuthorizeModel.self, from: authorizeModelData) {
             if authorizeModel.updatedDate == nil {
@@ -125,37 +110,58 @@ public struct Authorize {
         return true
     }
 
-    public static func setAccessToken(_ token: String) -> Bool {
+    public static func updateTokenExpireTime(_ expireAt: Int) -> Bool {
         if var auth = self.auth {
-            auth.accessToken = token
-            auth.updatedDate = Date()
-            self.auth = auth
-        } else {
-            var auth = AuthorizeModel()
-            auth.accessToken = token
+            auth.expireIn = expireAt
             auth.updatedDate = Date()
             self.auth = auth
         }
         return true
     }
 
-    public static func setAccessToken(_ clientId: String, clientSecret: String) -> Bool {
+    public static func setAccessToken(_ token: String, expireAt:Int = 0) -> Bool {
+        if var auth = self.auth {
+            auth.accessToken = token
+            auth.expireIn = expireAt
+            auth.updatedDate = Date()
+            self.auth = auth
+        } else {
+            var auth = AuthorizeModel()
+            auth.accessToken = token
+            auth.expireIn = expireAt
+            auth.updatedDate = Date()
+            self.auth = auth
+        }
+        return true
+    }
+
+    public static func setAccessToken(_ clientId: String, clientSecret: String, expireAt: Int = 0) -> Bool {
         let authString = "\(clientId):\(clientSecret)"
         if let dataFromString = authString.data(using: .utf8) {
             let encodedToken = dataFromString.base64EncodedString()
             if var auth = self.auth {
                 auth.accessToken = encodedToken
+                auth.expireIn = expireAt
                 auth.updatedDate = Date()
                 self.auth = auth
             } else {
                 var auth = AuthorizeModel()
                 auth.accessToken = encodedToken
+                auth.expireIn = expireAt
                 auth.updatedDate = Date()
                 self.auth = auth
             }
             return true
         }
         return false
+    }
+
+    /// Check whether its time to refresh the token or not
+    public static var shouldRefreshToken: Bool {
+        if let authValue = auth, let updateDate = authValue.updatedDate {
+            return (-1) * updateDate.timeIntervalSinceNow > Double(authValue.expireIn)
+        }
+        return true
     }
 
 }

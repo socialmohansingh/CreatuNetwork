@@ -16,39 +16,28 @@ public struct Network {
 
     fileprivate static let bag = DisposeBag()
 
-    public static func request<T>(_ api: T, onProgress: @escaping (ProgressResponse) -> Void, onCompleted: @escaping (AuthorizeResponse) -> Void, onError: @escaping (Error) -> Void, onFinal: @escaping() -> Void) where T: ApiTargetType {
+    public static func request<T>(_ api: T, onCompleted: @escaping (Moya.Response?) -> Void, onError: @escaping (Error) -> Void, onProgress: @escaping (ProgressResponse) -> Void, onRefresh: (() -> Void)? = nil, onFinal: (() -> Void)? = nil) where T: ApiTargetType {
 
         self.authenticate(api).subscribe(onNext: { (shouldRefreshToken) in
             if shouldRefreshToken {
-                var responseObj = AuthorizeResponse()
-                responseObj.response = nil
-                responseObj.shouldTokenRefresh = true
-                responseObj.message = nil
-                responseObj.success = false
-                onCompleted(responseObj)
-                onFinal()
+                onRefresh?()
             } else {
                 let provider = AuthorizeNetworking<T>.establish()
                 provider.requestWithProgress(with: api).subscribe({ progressResponse in
                     debugPrint(progressResponse)
                     switch progressResponse {
                     case .completed:
-                        onFinal()
+                        onFinal?()
                     case .next(let responceData):
                         if responceData.completed {
-                            var responseObj = AuthorizeResponse()
-                            responseObj.response = responceData.response
-                            responseObj.shouldTokenRefresh = false
-                            responseObj.success = true
-                            responseObj.message = nil
-                            onCompleted(responseObj)
+                            onCompleted(responceData.response)
                         }
                         else {
                             onProgress(responceData)
                         }
                     case .error(let error):
                         onError(error)
-                        onFinal()
+                        onFinal?()
                     }
 
                 }).disposed(by: bag)
@@ -56,74 +45,51 @@ public struct Network {
         }).disposed(by: bag)
     }
 
-    public static func request<T>(_ api: T, onCompleted: @escaping (AuthorizeResponse) -> Void, onError: @escaping (Error) -> Void, onFinal: @escaping () -> Void) where T: ApiTargetType {
+    public static func request<T>(_ api: T, onCompleted: @escaping (Moya.Response?) -> Void, onError: @escaping (Error) -> Void, onRefresh: (() -> Void)? = nil, onFinal: (() -> Void)? = nil) where T: ApiTargetType {
 
         self.authenticate(api).subscribe(onNext: { (shouldRefreshToken) in
             if shouldRefreshToken {
-                var responseObj = AuthorizeResponse()
-                responseObj.response = nil
-                responseObj.shouldTokenRefresh = true
-                responseObj.message = nil
-                responseObj.success = false
-
-                onCompleted(responseObj)
-                onFinal()
+                onRefresh?()
             } else {
                 let provider = AuthorizeNetworking<T>.establish()
                 provider.request(with: api).subscribe({ response  in
                     debugPrint(response)
                     switch response {
                     case .completed:
-                        onFinal()
+                        onFinal?()
                     case .next(let responseData):
-                        var responseObj = AuthorizeResponse()
-                        responseObj.response = responseData
-                        responseObj.shouldTokenRefresh = false
-                        responseObj.success = true
-                        responseObj.message = nil
-                        onCompleted(responseObj)
+                        onCompleted(responseData)
                     case .error(let error):
                         onError(error)
-                        onFinal()
+                        onFinal?()
                     }
                 }).disposed(by: bag)
             }
         }).disposed(by: bag)
     }
 
-    public static func request<T>(_ api: T, callbackQueue: DispatchQueue?, onProgress: @escaping (ProgressResponse) -> Void, onCompleted: @escaping (AuthorizeResponse) -> Void, onError: @escaping (Error) -> Void, onFinal: @escaping () -> Void) where T: ApiTargetType {
+    public static func request<T>(_ api: T, callbackQueue: DispatchQueue?, onProgress: @escaping (ProgressResponse) -> Void, onCompleted: @escaping (Moya.Response?) -> Void, onError: @escaping (Error) -> Void, onRefresh: (() -> Void)? = nil, onFinal: (() -> Void)? = nil) where T: ApiTargetType {
 
         self.authenticate(api).subscribe(onNext: { (shouldRefreshToken) in
             if shouldRefreshToken {
-                var responseObj = AuthorizeResponse()
-                responseObj.response = nil
-                responseObj.shouldTokenRefresh = true
-                responseObj.message = nil
-                responseObj.success = false
-                onCompleted(responseObj)
-                onFinal()
+                onRefresh?()
             } else {
                 let provider = AuthorizeNetworking<T>.establish()
                 provider.requestWithProgress(with: api, callbackQueue: callbackQueue).subscribe({ progressResponse in
                     debugPrint(progressResponse)
                     switch progressResponse {
                     case .completed:
-                        onFinal()
+                        onFinal?()
                     case .next(let responceData):
                         if responceData.completed {
-                            var responseObj = AuthorizeResponse()
-                            responseObj.response = responceData.response
-                            responseObj.shouldTokenRefresh = false
-                            responseObj.success = true
-                            responseObj.message = nil
-                            onCompleted(responseObj)
+                            onCompleted(responceData.response)
                         }
                         else {
                             onProgress(responceData)
                         }
                     case .error(let error):
                         onError(error)
-                        onFinal()
+                        onFinal?()
                     }
 
                 }).disposed(by: bag)
@@ -131,35 +97,23 @@ public struct Network {
         }).disposed(by: bag)
     }
 
-    public static func request<T>(_ api: T, callbackQueue: DispatchQueue?, onCompleted: @escaping (AuthorizeResponse) -> Void, onError: @escaping (Error) -> Void, onFinal: @escaping () -> Void) where T: ApiTargetType {
+    public static func request<T>(_ api: T, callbackQueue: DispatchQueue?, onCompleted: @escaping (Moya.Response?) -> Void, onError: @escaping (Error) -> Void, onRefresh: (() -> Void)? = nil, onFinal: (() -> Void)? = nil) where T: ApiTargetType {
 
         self.authenticate(api).subscribe(onNext: { (shouldRefreshToken) in
             if shouldRefreshToken {
-                var responseObj = AuthorizeResponse()
-                responseObj.response = nil
-                responseObj.shouldTokenRefresh = true
-                responseObj.message = nil
-                responseObj.success = false
-
-                onCompleted(responseObj)
-                onFinal()
+                onRefresh?()
             } else {
                 let provider = AuthorizeNetworking<T>.establish()
                 provider.request(with: api, callbackQueue: callbackQueue).subscribe({ response  in
                     debugPrint(response)
                     switch response {
                     case .completed:
-                        onFinal()
+                        onFinal?()
                     case .next(let responseData):
-                        var responseObj = AuthorizeResponse()
-                        responseObj.response = responseData
-                        responseObj.shouldTokenRefresh = false
-                        responseObj.success = true
-                        responseObj.message = nil
-                        onCompleted(responseObj)
+                        onCompleted(responseData)
                     case .error(let error):
                         onError(error)
-                        onFinal()
+                        onFinal?()
                     }
                 }).disposed(by: bag)
             }
