@@ -41,6 +41,8 @@ public struct Authorize {
     //    public static var shared = Authorize()
     //    fileprivate init() {}
 
+
+    /// set or get your custom header 
     public static var customHeader: [String: String]? {
         get {
             if let header = UserDefaults.standard.dictionary(forKey: "auth_custom_header") as? [String: String] {
@@ -61,6 +63,8 @@ public struct Authorize {
         }
     }
 
+
+    /// get your refresh token
     public static var refreshToken: String? {
         if let auth = self.auth {
             return auth.refreshToken
@@ -68,10 +72,14 @@ public struct Authorize {
         return nil
     }
 
+
+    /// get your saved authorize model
     public static var authorizeModel: AuthorizeModel? {
         return self.auth
     }
 
+
+    /// get your saved access token
     public static var accessToken: String? {
         if let auth = self.auth {
             return auth.accessToken
@@ -79,6 +87,11 @@ public struct Authorize {
         return nil
     }
 
+
+    /// update authorize throough json data
+    ///
+    /// - Parameter authorize: your authorize json keys ["access_token":"<your-token>", "refresh_token":"<your-refresh-token>","token_type":"<your-token-type>","updated_date":"<your-update-date>","expires_in":"<your-expire-limit>"]
+    /// - Returns: return true if successfully updated
     public static func updateAuthorize(_ authorize: [String: Any]) -> Bool {
         if let authorizeModelData = try? JSONSerialization.data(withJSONObject: authorize, options: .prettyPrinted), var authorizeModel = try? JSONDecoder().decode(AuthorizeModel.self, from: authorizeModelData) {
             if authorizeModel.updatedDate == nil {
@@ -90,6 +103,11 @@ public struct Authorize {
         return false
     }
 
+
+    /// update authorize model
+    ///
+    /// - Parameter authorize: authorize model
+    /// - Returns: return true if successfully updated
     public static func updateAuthorize(_ authorize: AuthorizeModel) -> Bool {
 
         if authorize.updatedDate == nil {
@@ -104,12 +122,21 @@ public struct Authorize {
         return true
     }
 
+
+    /// clear all your auth data
+    ///
+    /// - Returns: return true if successfully cleared
     public static func clearSavedData() -> Bool {
         self.auth = nil
         self.customHeader = nil
         return true
     }
 
+
+    /// update access token
+    ///
+    /// - Parameter expireAt: token expire limit default 3600 sec
+    /// - Returns: eturn true if successfully saved your token
     public static func updateTokenExpireTime(_ expireAt: Int = 3600) -> Bool {
         if var auth = self.auth {
             auth.expireIn = expireAt
@@ -119,6 +146,13 @@ public struct Authorize {
         return true
     }
 
+
+    /// update access token
+    ///
+    /// - Parameters:
+    ///   - token: your token data
+    ///   - expireAt: token expire limit default 3600 sec
+    /// - Returns: return true if successfully saved your token
     public static func setAccessToken(_ token: String, expireAt:Int = 3600) -> Bool {
         if var auth = self.auth {
             auth.accessToken = token
@@ -135,6 +169,14 @@ public struct Authorize {
         return true
     }
 
+
+    /// Update access token :>your token base 64 string of clientUd:clientSecret
+    ///
+    /// - Parameters:
+    ///   - clientId: your token client id
+    ///   - clientSecret: your token client secret
+    ///   - expireAt: token expire limit default 3600 sec
+    /// - Returns: return true if successfully saved your token
     public static func setAccessToken(_ clientId: String, clientSecret: String, expireAt: Int = 3600) -> Bool {
         let authString = "\(clientId):\(clientSecret)"
         if let dataFromString = authString.data(using: .utf8) {

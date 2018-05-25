@@ -10,12 +10,28 @@ import Foundation
 import RxSwift
 import RxCocoa
 import Moya
-import SystemConfiguration
+import Reachability
 
 public struct Network {
 
     fileprivate static let bag = DisposeBag()
 
+
+    /// internet connection status true or false
+    public static let connection = BehaviorRelay<Bool>(value:false)
+
+    /// internet connection source like wifi, cellular, none
+    public static let internetSource = BehaviorRelay<Reachability.Connection>(value:.none)
+
+    /// your api request with api progress status
+    ///
+    /// - Parameters:
+    ///   - api: api information
+    ///   - onCompleted: call if api successfully completed
+    ///   - onError: call if api error
+    ///   - onProgress: call if on progress api
+    ///   - onRefresh: call if token expire
+    ///   - onFinal: call after api completed
     public static func request<T>(_ api: T, onCompleted: @escaping (Moya.Response?) -> Void, onError: @escaping (Error) -> Void, onProgress: @escaping (ProgressResponse) -> Void, onRefresh: (() -> Void)? = nil, onFinal: (() -> Void)? = nil) where T: ApiTargetType {
 
         self.authenticate(api).subscribe(onNext: { (shouldRefreshToken) in
@@ -45,6 +61,14 @@ public struct Network {
         }).disposed(by: bag)
     }
 
+    /// your api request without api progress status
+    ///
+    /// - Parameters:
+    ///   - api: api information
+    ///   - onCompleted: call if api successfully completed
+    ///   - onError: call if api error
+    ///   - onRefresh: call if token expire
+    ///   - onFinal: call after api completed
     public static func request<T>(_ api: T, onCompleted: @escaping (Moya.Response?) -> Void, onError: @escaping (Error) -> Void, onRefresh: (() -> Void)? = nil, onFinal: (() -> Void)? = nil) where T: ApiTargetType {
 
         self.authenticate(api).subscribe(onNext: { (shouldRefreshToken) in
@@ -68,6 +92,17 @@ public struct Network {
         }).disposed(by: bag)
     }
 
+
+    /// your api request with api progress status
+    ///
+    /// - Parameters:
+    ///   - callbackQueue: call back queue
+    ///   - api: api information
+    ///   - onCompleted: call if api successfully completed
+    ///   - onError: call if api error
+    ///   - onProgress: call if on progress api
+    ///   - onRefresh: call if token expire
+    ///   - onFinal: call after api completed
     public static func request<T>(_ api: T, callbackQueue: DispatchQueue?, onProgress: @escaping (ProgressResponse) -> Void, onCompleted: @escaping (Moya.Response?) -> Void, onError: @escaping (Error) -> Void, onRefresh: (() -> Void)? = nil, onFinal: (() -> Void)? = nil) where T: ApiTargetType {
 
         self.authenticate(api).subscribe(onNext: { (shouldRefreshToken) in
@@ -97,6 +132,15 @@ public struct Network {
         }).disposed(by: bag)
     }
 
+    /// your api request without api progress status
+    ///
+    /// - Parameters:
+    ///   - callbackQueue: call back queue
+    ///   - api: api information
+    ///   - onCompleted: call if api successfully completed
+    ///   - onError: call if api error
+    ///   - onRefresh: call if token expire
+    ///   - onFinal: call after api completed
     public static func request<T>(_ api: T, callbackQueue: DispatchQueue?, onCompleted: @escaping (Moya.Response?) -> Void, onError: @escaping (Error) -> Void, onRefresh: (() -> Void)? = nil, onFinal: (() -> Void)? = nil) where T: ApiTargetType {
 
         self.authenticate(api).subscribe(onNext: { (shouldRefreshToken) in
@@ -120,10 +164,13 @@ public struct Network {
         }).disposed(by: bag)
     }
 
-    public static func available() -> Bool {
-        return self.isInternetAvailable()
-    }
 
+    /// check internet available
+    ///
+    /// - Returns: return true if internet available or false
+    public static func available() -> Bool {
+        return ConnectionManager.shared.isInternetAvailable()
+    }
 }
 
 extension Network {
@@ -143,27 +190,6 @@ extension Network {
             }
             return Disposables.create()
         }
-    }
-
-    fileprivate static func isInternetAvailable() -> Bool {
-        var zeroAddress = sockaddr_in()
-        zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
-        zeroAddress.sin_family = sa_family_t(AF_INET)
-
-        let defaultRouteReachability = withUnsafePointer(to: &zeroAddress) {
-            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { zeroSockAddress in
-                SCNetworkReachabilityCreateWithAddress(nil, zeroSockAddress)
-            }
-        }
-
-        var flags = SCNetworkReachabilityFlags()
-        if !SCNetworkReachabilityGetFlags(defaultRouteReachability!, &flags) {
-            return false
-        }
-
-        let isReachable = flags.contains(.reachable)
-        let needsConnection = flags.contains(.connectionRequired)
-        return (isReachable && !needsConnection)
     }
 }
 

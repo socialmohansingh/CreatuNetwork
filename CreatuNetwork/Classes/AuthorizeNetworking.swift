@@ -9,6 +9,8 @@
 import Foundation
 import Moya
 import RxSwift
+import SystemConfiguration
+import Reachability
 
 //Networking for user
 struct AuthorizeNetworking<MSTApi>: AuthNetworkingProtocol where MSTApi: ApiTargetType {
@@ -54,7 +56,11 @@ extension AuthorizeNetworking {
 //protocol Authorizable
 //this will be used to determine which of the API should use Authorization header
 public protocol AuthApiToken {
+
+    /// set authorization header 
     var authTokenType: AuthHeaderType { get }
+
+    /// if true check refresh token expire or not
     var checkTokenValidity: Bool {get}
 }
 
@@ -69,6 +75,10 @@ public protocol ApiTargetType: TargetType, AuthApiToken {
 
 extension AuthNetworkingProtocol {
 
+
+    /// update your endheader values
+    ///
+    /// - Returns: return api endpoint
     fileprivate static func authEndClosers<T>() -> (T) -> Endpoint where T: ApiTargetType {
         return { target in
             let url = target.baseURL.appendingPathComponent(target.path)
@@ -91,6 +101,10 @@ extension AuthNetworkingProtocol {
         }
     }
 
+    /// get your Authorization access token
+    ///
+    /// - Parameter authTokenType: token type like basic or bearer or custom
+    /// - Returns: your access token header like [Authorization:"Bearer ytoken"]
     fileprivate static func getAuthToken(_ authTokenType: AuthHeaderType) -> [String: String]? {
         switch authTokenType {
         case .basic:
@@ -114,4 +128,63 @@ extension AuthNetworkingProtocol {
     }
 }
 
+
+class ConnectionManager {
+
+    static let shared = ConnectionManager()
+    private var reachability : Reachability!
+
+    fileprivate init(){}
+
+    func observeReachability(){
+        self.reachability = Reachability()
+        NotificationCenter.default.addObserver(self, selector:#selector(self.reachabilityChanged), name: NSNotification.Name.reachabilityChanged, object: nil)
+        do {
+            try self.reachability.startNotifier()
+        }
+        catch(let error) {
+            print("Error occured while starting reachability notifications : \(error.localizedDescription)")
+        }
+    }
+
+    @objc func reachabilityChanged(note: Notification) {
+        let reachability = note.object as! Reachability
+        switch reachability.connection {
+        case .cellular:
+            print("Network available via Cellular Data.")
+            Network.connection.accept(true)
+            break
+        case .wifi:
+            print("Network available via WiFi.")
+            Network.connection.accept(true)
+            break
+        case .none:
+            print("Network is not available.")
+             Network.connection.accept(false)
+            break
+        }
+        Network.internetSource.accept(reachability.connection)
+    }
+
+    public func isInternetAvailable() -> Bool {
+        var zeroAddress = sockaddr_in()
+        zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
+        zeroAddress.sin_family = sa_family_t(AF_INET)
+
+        let defaultRouteReachability = withUnsafePointer(to: &zeroAddress) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { zeroSockAddress in
+                SCNetworkReachabilityCreateWithAddress(nil, zeroSockAddress)
+            }
+        }
+
+        var flags = SCNetworkReachabilityFlags()
+        if !SCNetworkReachabilityGetFlags(defaultRouteReachability!, &flags) {
+            return false
+        }
+
+        let isReachable = flags.contains(.reachable)
+        let needsConnection = flags.contains(.connectionRequired)
+        return (isReachable && !needsConnection)
+    }
+}
 
