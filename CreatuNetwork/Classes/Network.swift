@@ -23,6 +23,10 @@ public struct Network {
     /// internet connection source like wifi, cellular, none
     public static let internetSource = BehaviorRelay<Reachability.Connection>(value:.none)
 
+    init() {
+        ConnectionManager.shared.observeReachability()
+    }
+
     /// your api request with api progress status
     ///
     /// - Parameters:
