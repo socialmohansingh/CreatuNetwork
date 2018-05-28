@@ -18,14 +18,10 @@ public struct Network {
 
 
     /// internet connection status true or false
-    public static let connection = BehaviorRelay<Bool>(value:false)
+    public static let connection = BehaviorRelay<Bool>(value:ConnectionManager.shared.isInternetAvailable())
 
     /// internet connection source like wifi, cellular, none
     public static let internetSource = BehaviorRelay<Reachability.Connection>(value:.none)
-
-    init() {
-        ConnectionManager.shared.observeReachability()
-    }
 
     /// your api request with api progress status
     ///

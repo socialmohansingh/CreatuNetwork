@@ -134,7 +134,9 @@ class ConnectionManager {
     static let shared = ConnectionManager()
     private var reachability : Reachability!
 
-    fileprivate init(){}
+    fileprivate init(){
+        observeReachability()
+    }
 
     func observeReachability(){
         self.reachability = Reachability()
