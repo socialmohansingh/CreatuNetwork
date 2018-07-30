@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'CreatuNetwork'
-  s.version          = '0.1.9'
+  s.version          = '0.2.0'
   s.summary          = 'This is Network request library. depends upon RXSwift, RxXoxoa, Moya/RxSwift, ReachabilitySwift '
 
 # This description is used to generate tags and improve search results.
@@ -193,7 +193,7 @@ enum UserApi {
  s.social_media_url = 'https://twitter.com/sngmon'
 
   s.ios.deployment_target = '10.0'
-   s.swift_version = '4.0'
+  s.swift_version = '4.0'
   s.source_files = 'CreatuNetwork/**/*'
   
   # s.resource_bundles = {

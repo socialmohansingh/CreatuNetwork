@@ -122,6 +122,8 @@ extension AuthNetworkingProtocol {
                 return customHeader
             }
             return nil
+        case .oauth1:
+            return Authorize.getOAuth1Header()
         case .none:
             return nil
         }

@@ -15,6 +15,7 @@ public enum AuthHeaderType {
     case bearer
     case basic
     case custom
+    case oauth1
     case none
 }
 
@@ -41,6 +42,38 @@ public struct Authorize {
     //    public static var shared = Authorize()
     //    fileprivate init() {}
 
+    static var consumerKey = ""
+    static var signature = ""
+    static var signatureMethod = "HMAC-SHA256"
+    static var oauthVersion = "1.0"
+
+
+    /// update oauth1 consumer keys
+    ///
+    /// - Parameters:
+    ///   - key: your oauth consumer key
+    ///   - signature: your oauth consumer signature
+    ///   - signatureMethod: your oauth signature method
+    ///   - version: your oauth version
+    public func setupOAuthConsumer(key: String, signature: String, signatureMethod: String = "HMAC-SHA256", version: String = "1.0") {
+        Authorize.consumerKey = key
+        Authorize.signature = signature
+        Authorize.signatureMethod = signatureMethod
+        Authorize.oauthVersion = version
+    }
+
+
+    /// Oatuh1 headers format
+    ///
+    /// - Returns: Oauth header
+    public static func getOAuth1Header() -> [String : String] {
+        return ["oauth_consumer_key": consumerKey,
+                "oauth_signature_method": signatureMethod,
+                "oauth_timestamp":  "\(Date().timeIntervalSinceNow)",
+                "oauth_nonce": "\(UUID().uuidString)_\(Date().timeIntervalSinceNow)",
+                "oauth_version": oauthVersion,
+                "oauth_signature": signature]
+    }
 
     /// set or get your custom header 
     public static var customHeader: [String: String]? {
@@ -213,7 +246,12 @@ extension Authorize {
     /// The auth data for current session after authorization of app
     fileprivate static var auth: AuthorizeModel? {
         set {
-            if let newValue = newValue {
+            if var newValue = newValue {
+
+                if newValue.updatedDate == nil {
+                    newValue.updatedDate = Date()
+                }
+
                 guard let authValues = try? JSONEncoder().encode(newValue) else { return }
                 UserDefaults.standard.setValue(authValues, forKey: "AuthSession")
                 UserDefaults.standard.synchronize()
