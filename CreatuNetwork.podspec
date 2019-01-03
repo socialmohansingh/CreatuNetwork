@@ -202,8 +202,8 @@ enum UserApi {
 
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
-  s.dependency "RxSwift", "~> 4.1.2"
-  s.dependency "RxCocoa", "~> 4.1.2"
-  s.dependency "Moya/RxSwift", "~> 11.0.1"
-  s.dependency "ReachabilitySwift", "~> 4.1.0"
+  s.dependency "RxSwift"
+  s.dependency "RxCocoa"
+  s.dependency "Moya/RxSwift"
+  s.dependency "ReachabilitySwift"
 end
