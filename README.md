@@ -17,7 +17,7 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 
 - Alamofire (4.7.0)
 - KeychainSwift (10.0.0)
-- Moya (11.0.1)
+- Moya (Latest)
 - ReachabilitySwift (4.1.0)
 - Result (3.2.4)
 - RxCocoa (4.1.2)
